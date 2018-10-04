@@ -1,0 +1,21 @@
+--  premake5 --file=hash_map_test.premake vs2010
+--  premake5 --file=hash_map_test.premake gmake
+
+workspace   "hash_map_test"
+    configurations  {"Debug"}
+
+
+project     "hash_map_test"
+    language        "C"
+    kind            "ConsoleApp" 
+    targetdir       ("test")
+
+
+    files           {"*.h", "*.c"}
+    compileas      "C++"
+
+
+    filter          "configurations:Debug"
+        defines     {"DEBUG"}
+        symbols     "On"
+
