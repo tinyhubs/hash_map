@@ -2,8 +2,7 @@
 #define __hash_map_H_
 
 
-typedef unsigned int    uint32;
-typedef          int    int32;
+#include "upc_types.h"
 
 
 struct hash_node
@@ -22,13 +21,6 @@ struct hash_key
     void*   data;
 };
 
-struct hash_trait
-{
-    struct hash_key (*key  )(struct hash_trait* trait, struct hash_node* node);
-    uint32          (*hash )(struct hash_trait* trait, struct hash_key   key);
-    int32           (*equal)(struct hash_trait* trait, struct hash_key   key1, struct hash_key   key2);
-    void            (*free )(struct hash_trait* trait, struct hash_node* node);
-};
 
 struct hash_map
 {
@@ -39,8 +31,14 @@ struct hash_map
 };
 
 
-int     hash_trait_init_string  (struct hash_trait* trait);
-int     hash_trait_init_int     (struct hash_trait* trait);
+
+struct hash_trait
+{
+    struct hash_key (*key   )(struct hash_trait* trait, struct hash_node* node);
+    uint32          (*hash  )(struct hash_trait* trait, struct hash_key   key);
+    int32           (*equal )(struct hash_trait* trait, struct hash_key   key1, struct hash_key   key2);
+};
+
 
 struct hash_map*    hash_map_init   (struct hash_map* h, struct hash_trait* trait, int buckets_size); 
 void                hash_map_exit   (struct hash_map* h); 

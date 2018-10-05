@@ -6,9 +6,7 @@
 #include <assert.h>
 
 
-#ifndef ASSERT
-#define ASSERT(e)   assert(e)
-#endif//ASSERT
+#include "upc_assert_message.h"
 
 
 // 
@@ -53,12 +51,20 @@ struct hash_map*    hash_map_init(struct hash_map* h, struct hash_trait* trait, 
 }
 
 
-void    hash_map_del(struct hash_map* h)
+void    hash_map_exit(struct hash_map* h)
 {
+    if (NULL == h)
+    {
+        return;
+    }
 
+    if (NULL != h->buckets)
+    {
+        free(h->buckets);
+    }
 }
 
-struct hash_node*    hash_map_put    (struct hash_map* h, struct hash_node* n)
+struct hash_node*   hash_map_put    (struct hash_map* h, struct hash_node* n)
 {
     struct hash_key key = h->trait->key(h->trait, n);
     uint32 hash  = h->trait->hash(h->trait, key);
@@ -70,7 +76,7 @@ struct hash_node*    hash_map_put    (struct hash_map* h, struct hash_node* n)
         bucket->first = n;
         n->next = n;
         n->prev = n;
-        return NULL;
+        return NULL;   //  添加成功
     }
 
     struct hash_node* old_node = NULL;
@@ -82,7 +88,7 @@ struct hash_node*    hash_map_put    (struct hash_map* h, struct hash_node* n)
         {
             if (n == node)
             {
-                return NULL;
+                return NULL;   //  将自身重新添加进来
             }   
 
             old_node = node;
@@ -96,7 +102,7 @@ struct hash_node*    hash_map_put    (struct hash_map* h, struct hash_node* n)
             old_node->next = NULL;
             old_node->prev = NULL;
 
-            return old_node;
+            return old_node;    //  添加成功，且代替了旧的项目
         }
     }
 
@@ -153,7 +159,7 @@ struct hash_node*   hash_map_pop    (struct hash_map* h, struct hash_key key)
             }
             else
             {
-                ASSERT((1 == h->count));
+                ASSERT_MESSAGE((1 == h->count), "程序走到这里，元素个数应该为1");
                 bucket->first = NULL;
             }
 
