@@ -66,7 +66,7 @@ void    hash_map_exit(struct hash_map* h)
 
 struct hash_node*   hash_map_put    (struct hash_map* h, struct hash_node* n)
 {
-    struct hash_key key = h->trait->key(h->trait, n);
+    void* key = h->trait->key(h->trait, n);
     uint32 hash  = h->trait->hash(h->trait, key);
     uint32 index = hash % h->buckets_cap;
 
@@ -76,6 +76,7 @@ struct hash_node*   hash_map_put    (struct hash_map* h, struct hash_node* n)
         bucket->first = n;
         n->next = n;
         n->prev = n;
+        h->count++;
         return NULL;   //  添加成功
     }
 
@@ -83,7 +84,7 @@ struct hash_node*   hash_map_put    (struct hash_map* h, struct hash_node* n)
     
     for (struct hash_node* node = bucket->first; NULL != node; node = node->next)
     {
-        struct hash_key key2 = h->trait->key(h->trait, node);
+        void* key2 = h->trait->key(h->trait, node);
         if (h->trait->equal(h->trait, key, key2))
         {
             if (n == node)
@@ -102,6 +103,7 @@ struct hash_node*   hash_map_put    (struct hash_map* h, struct hash_node* n)
             old_node->next = NULL;
             old_node->prev = NULL;
 
+            h->count++;
             return old_node;    //  添加成功，且代替了旧的项目
         }
     }
@@ -112,10 +114,11 @@ struct hash_node*   hash_map_put    (struct hash_map* h, struct hash_node* n)
     n->next = first;
     last->next  = n;
     first->prev = n;
+    h->count++;
     return NULL;
 }
 
-struct hash_node*    hash_map_get    (struct hash_map* h, struct hash_key key)
+struct hash_node*    hash_map_get    (struct hash_map* h, void* key)
 {
     uint32 hash  = h->trait->hash(h->trait, key);
     uint32 index = hash % h->buckets_cap;
@@ -123,7 +126,7 @@ struct hash_node*    hash_map_get    (struct hash_map* h, struct hash_key key)
     struct hash_bucket* bucket = h->buckets + index;
     for (struct hash_node* node = bucket->first; NULL != node; node = node->next)
     {
-        struct hash_key key2 = h->trait->key(h->trait, node);
+        void* key2 = h->trait->key(h->trait, node);
         if (h->trait->equal(h->trait, key, key2))
         {
             return node;
@@ -133,7 +136,7 @@ struct hash_node*    hash_map_get    (struct hash_map* h, struct hash_key key)
     return NULL;
 }
 
-struct hash_node*   hash_map_pop    (struct hash_map* h, struct hash_key key)
+struct hash_node*   hash_map_pop    (struct hash_map* h, void* key)
 {
     uint32 hash  = h->trait->hash(h->trait, key);
     uint32 index = hash % h->buckets_cap;
@@ -141,7 +144,7 @@ struct hash_node*   hash_map_pop    (struct hash_map* h, struct hash_key key)
     struct hash_bucket* bucket = h->buckets + index;
     for (struct hash_node* node = bucket->first; NULL != node; node = node->next)
     {
-        struct hash_key key2 = h->trait->key(h->trait, node);
+        void* key2 = h->trait->key(h->trait, node);
         if (h->trait->equal(h->trait, key, key2))
         {
             if (node->prev != node)

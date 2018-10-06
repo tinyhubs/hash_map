@@ -2,6 +2,9 @@
 #define __hash_func_str_H_
 
 
+#include "upc_types.h"
+
+
 // DJB2
 // DJB2a (variant using xor rather than +)
 // FNV-1 (32-bit)
@@ -10,13 +13,12 @@
 // CRC32
 // Murmur2 (32-bit)
 // Murmur3
-// SuperFastHash
-// DJB2
+// SuperFastHash xx
 // LoseLose
 
-unsigned int SDBMHash(char *str)
+static inline uint32 SDBMHash(char *str)
 {
-    unsigned int hash = 0;
+    uint32 hash = 0;
 
     while (*str)
     {
@@ -28,11 +30,11 @@ unsigned int SDBMHash(char *str)
 }
 
 // RS Hash Function
-unsigned int RSHash(char *str)
+static inline uint32 RSHash(char *str)
 {
-    unsigned int b = 378551;
-    unsigned int a = 63689;
-    unsigned int hash = 0;
+    uint32 b = 378551;
+    uint32 a = 63689;
+    uint32 hash = 0;
 
     while (*str)
     {
@@ -44,9 +46,9 @@ unsigned int RSHash(char *str)
 }
 
 // JS Hash Function
-unsigned int JSHash(char *str)
+static inline uint32 JSHash(char *str)
 {
-    unsigned int hash = 1315423911;
+    uint32 hash = 1315423911;
 
     while (*str)
     {
@@ -57,14 +59,14 @@ unsigned int JSHash(char *str)
 }
 
 // P. J. Weinberger Hash Function
-unsigned int PJWHash(char *str)
+static inline uint32 PJWHash(char *str)
 {
-    unsigned int BitsInUnignedInt = (unsigned int)(sizeof(unsigned int) * 8);
-    unsigned int ThreeQuarters    = (unsigned int)((BitsInUnignedInt  * 3) / 4);
-    unsigned int OneEighth        = (unsigned int)(BitsInUnignedInt / 8);
-    unsigned int HighBits         = (unsigned int)(0xFFFFFFFF) << (BitsInUnignedInt - OneEighth);
-    unsigned int hash             = 0;
-    unsigned int test             = 0;
+    uint32 BitsInUnignedInt = (uint32)(sizeof(uint32) * 8);
+    uint32 ThreeQuarters    = (uint32)((BitsInUnignedInt  * 3) / 4);
+    uint32 OneEighth        = (uint32)(BitsInUnignedInt / 8);
+    uint32 HighBits         = (uint32)(0xFFFFFFFF) << (BitsInUnignedInt - OneEighth);
+    uint32 hash             = 0;
+    uint32 test             = 0;
 
     while (*str)
     {
@@ -79,10 +81,10 @@ unsigned int PJWHash(char *str)
 }
 
 // ELF Hash Function
-unsigned int ELFHash(char *str)
+static inline uint32 ELFHash(char *str)
 {
-    unsigned int hash = 0;
-    unsigned int x    = 0;
+    uint32 hash = 0;
+    uint32 x    = 0;
 
     while (*str)
     {
@@ -98,10 +100,10 @@ unsigned int ELFHash(char *str)
 }
 
 // BKDR Hash Function
-unsigned int BKDRHash(char *str)
+static inline uint32 BKDRHash(char *str)
 {
-    unsigned int seed = 131; // 31 131 1313 13131 131313 etc..
-    unsigned int hash = 0;
+    uint32 seed = 131; // 31 131 1313 13131 131313 etc..
+    uint32 hash = 0;
 
     while (*str)
     {
@@ -112,9 +114,9 @@ unsigned int BKDRHash(char *str)
 }
 
 // DJB Hash Function
-unsigned int DJBHash(char *str)
+static inline uint32 DJBHash(char *str)
 {
-    unsigned int hash = 5381;
+    uint32 hash = 5381;
 
     while (*str)
     {
@@ -124,13 +126,22 @@ unsigned int DJBHash(char *str)
     return (hash & 0x7FFFFFFF);
 }
 
-// AP Hash Function
-unsigned int APHash(char *str)
+static inline uint32 DJB2Hash(char *str)
 {
-    unsigned int hash = 0;
-    int i;
+    unsigned long hash = 5381;
+    while (*str)
+    {
+        hash = ((hash << 5) + hash) + (uint32)*(str++); /* hash * 33 + c */
+    }
 
-    for (i=0; *str; i++)
+    return (uint32)(hash & 0x7FFFFFFF);
+}
+
+// AP Hash Function
+static inline uint32 APHash(char *str)
+{
+    uint32 hash = 0;
+    for ( int i = 0; *str; i++)
     {
         if ((i & 1) == 0)
         {
@@ -145,44 +156,104 @@ unsigned int APHash(char *str)
     return (hash & 0x7FFFFFFF);
 }
 
-unsigned long LoseLoseHash(unsigned char *str)
+static inline uint32 LoseLoseHash(char *str)
 {
-    unsigned int hash = 0;
-    int c;
-
-    while (c = *(str++))
+    uint32 hash = 0;
+    while (*str)
     {
-        hash += c;
+        hash += *(str++);
     }
 
     return hash;
 }
 
 
-unsigned long FNV_hash(char* str, unsigned long int length)
+static inline uint32 FNV_hash(char* str)
 {
     unsigned long h = 2166136261UL;
-    unsigned long i;
 
     while (*str)
     {
         h = (h * 16777619) ^ *str ;
     }
 
-    return h;
+    return (uint32)(h & 0x7FFFFFFF);
 }
 
-unsigned long FNV1a_hash(char* str, unsigned long int length)
+static inline uint32 FNV1a_hash(char* str)
 {
     unsigned long h = 2166136261UL;
-    unsigned long i;
 
     while (*str)
     {
         h = (h ^ *str) * 16777619;
     }
 
-    return h;
+    return (uint32)(h & 0x7FFFFFFF);
+}
+
+
+static inline uint32    murmurhash (const char *key, uint32 len, uint32 seed) 
+{
+        uint32 c1 = 0xcc9e2d51;
+        uint32 c2 = 0x1b873593;
+        uint32 r1 = 15;
+        uint32 r2 = 13;
+        uint32 m = 5;
+        uint32 n = 0xe6546b64;
+        uint32 h = 0;
+        uint32 k = 0;
+        uint8 *d = (uint8 *) key; // 32 bit extract from `key'
+        uint32 *chunks = NULL;
+        uint8 *tail = NULL; // tail - last 8 bytes
+        int i = 0;
+        int l = len / 4; // chunk length
+
+        h = seed;
+
+        chunks = (uint32 *) (d + l * 4); // body
+        tail = (uint8 *) (d + l * 4); // last 8 byte chunk of `key'
+
+        // for each 4 byte chunk of `key'
+        for (i = -l; i != 0; ++i) {
+            // next 4 byte chunk of `key'
+            k = chunks[i];
+
+            // encode next 4 byte chunk of `key'
+            k *= c1;
+            k = (k << r1) | (k >> (32 - r1));
+            k *= c2;
+
+            // append to hash
+            h ^= k;
+            h = (h << r2) | (h >> (32 - r2));
+            h = h * m + n;
+        }
+
+        k = 0;
+
+        // remainder
+        switch (len & 3) { // `len % 4'
+        case 3: k ^= (tail[2] << 16);
+        case 2: k ^= (tail[1] << 8);
+
+        case 1:
+            k ^= tail[0];
+            k *= c1;
+            k = (k << r1) | (k >> (32 - r1));
+            k *= c2;
+            h ^= k;
+        }
+
+        h ^= len;
+
+        h ^= (h >> 16);
+        h *= 0x85ebca6b;
+        h ^= (h >> 13);
+        h *= 0xc2b2ae35;
+        h ^= (h >> 16);
+
+        return h;
 }
 
 #endif//__hash_func_str_H_

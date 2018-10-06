@@ -46,18 +46,9 @@ static inline  uint32 hash_32(uint32 val, unsigned int bits)
 }
 
 
-#if   (sizeof(long) * 8) == 32
-#define hash_long(val, bits) hash_32(val, bits)
-#elif (sizeof(long) * 8) == 64
-#define hash_long(val, bits) hash_64(val, bits)
-#else
-#error Wordsize not 32 or 64
-#endif
+#define hash_long(val, bits) ((sizeof(long) == 8)?hash_64(val, bits):hash_32(val, bits))
 
-
-#define hash_ptr(ptr, bits) hash_long((unsigned long)ptr, bits);
-
-
+#define hash_ptr(ptr, bits) hash_long((unsigned long)ptr, bits)
 
 STATIC_ASSERT((sizeof(long) == sizeof(void*)), "字符串长度必须等于 long 类型的长度");
 

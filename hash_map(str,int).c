@@ -1,43 +1,43 @@
 #include "hash_map(str,int).h"
 
 
+#include "upc_assert_message.h"
+#include "hash_func_str.h"
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
-#include "upc_assert_message.h"
-
-
-static struct hash_key hash_map_str_int_entry_key(struct hash_trait* trait, struct hash_node* node)
+static void* hash_map_str_int_entry_key(struct hash_trait* trait, struct hash_node* node)
 {
     ASSERT_MESSAGE((NULL != trait), "由外部保证 trait 参数的有效性");
     ASSERT_MESSAGE((NULL != node), "由外部保证 node 参数的有效性");
 
     struct hash_map_str_int_entry* entry = (struct hash_map_str_int_entry*)node;
-    struct hash_key key = {&(entry->key.key)};
-    return key;
+    return &(entry->key);
 }
 
 
 
 
-static uint32          hash_map_str_int_entry_hash(struct hash_trait* trait, struct hash_key   key)
+static uint32          hash_map_str_int_entry_hash(struct hash_trait* trait, void* key)
 {
     ASSERT_MESSAGE((NULL != trait), "由外部保证 trait 参数的有效性");
-    ASSERT_MESSAGE((NULL != key.data), "由外部保证 key.data 有效性");
-    struct hash_map_str_int_entry* entry = (struct hash_map_str_int_entry*)(key.data);
-    return entry->key.hash;
+    ASSERT_MESSAGE((NULL != key), "由外部保证 key.data 有效性");
+    struct hash_map_str_key* entry_key = (struct hash_map_str_key*)(key);
+    return entry_key->hash;
 }
 
 
 
 
-static int32           hash_map_str_int_entry_equal(struct hash_trait* trait, struct hash_key   key1, struct hash_key   key2)
+static int32           hash_map_str_int_entry_equal(struct hash_trait* trait, void* key1, void* key2)
 {
-    struct hash_map_str_int_entry* entry1 = (struct hash_map_str_int_entry*)(key1.data);
-    struct hash_map_str_int_entry* entry2 = (struct hash_map_str_int_entry*)(key2.data);
-    return (entry1->key.hash == entry2->key.hash) && (0 == strcmp(entry1->key.key, entry2->key.key));
+    struct hash_map_str_key* entry_key1 = (struct hash_map_str_key*)(key1);
+    struct hash_map_str_key* entry_key2 = (struct hash_map_str_key*)(key2);
+    return (entry_key1->hash == entry_key2->hash) && (0 == strcmp(entry_key1->key, entry_key2->key));
 }
 
 
@@ -72,22 +72,15 @@ hash_map_str_int_entry* hash_map_str_int_entry_new(char* key, int val)
     entry->node.next = NULL;
     entry->node.prev = NULL;
 
-    size_t key_len = strlen(key) + 1;
-    entry->key.key = (char*)malloc(key_len);
-    if (NULL == entry->key.key)
+    if (NULL == hash_map_str_key_init(&(entry->key), key))
     {
-        goto    fail;
+        free(entry);
+        return NULL;
     }
-    memcpy(entry->key.key, key, key_len);
-    entry->key.hash = 
 
     entry->val = val;
 
     return entry;
-
-fail:
-    hash_map_str_int_entry_del(entry);
-    return NULL;
 }
 
 
@@ -106,7 +99,20 @@ struct hash_trait*  hash_map_str_int_trait_init(struct hash_trait* trait)
 
 struct hash_map_str_key*    hash_map_str_key_init(struct hash_map_str_key* key, char* str)
 {
-    key->hash()
+    ASSERT_MESSAGE((NULL != key), "key 必须由外部保证有效性");
+    str = (NULL == str)?"":str;
+
+    size_t key_len = strlen(str) + 1;
+    key->key = (char*)malloc(key_len);
+    if (NULL == key->key)
+    {
+        key->key = NULL;
+        return NULL;
+    }
+
+    memcpy(key->key, str, key_len);
+    key->hash = DJB2Hash(str);
+    return key;
 }
 
 
