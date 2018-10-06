@@ -98,16 +98,21 @@ struct hash_node*   hash_map_put    (struct hash_map* h, struct hash_node* n)
             n->prev = node->prev;
             
             node->next->prev = n;
-            node->next->prev = n;
+            node->prev->next = n;
+
+            if (node == bucket->first)
+            {
+                bucket->first = n;
+            }
 
             old_node->next = NULL;
             old_node->prev = NULL;
 
-            h->count++;
             return old_node;    //  添加成功，且代替了旧的项目
         }
     }
 
+    //  如果 key 对应的项目不存在，那么尝试新添加一个
     struct hash_node* first = bucket->first;
     struct hash_node* last  = bucket->first->prev;
     n->prev = last;
@@ -162,7 +167,6 @@ struct hash_node*   hash_map_pop    (struct hash_map* h, void* key)
             }
             else
             {
-                ASSERT_MESSAGE((1 == h->count), "程序走到这里，元素个数应该为1");
                 bucket->first = NULL;
             }
 

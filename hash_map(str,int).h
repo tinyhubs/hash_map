@@ -15,7 +15,8 @@ struct hash_map_str_key
     uint32  hash;
     char*   key;
 };
-struct hash_map_str_key*    hash_map_str_key_init(struct hash_map_str_key* key, char* str);
+struct hash_map_str_key*    hash_map_str_key_ref(struct hash_map_str_key* key, char* str);
+
 
 //  定义一个实体
 struct hash_map_str_int_entry

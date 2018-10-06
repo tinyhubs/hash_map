@@ -61,6 +61,34 @@ void            hash_map_str_int_entry_del(struct hash_map_str_int_entry* entry)
 
 
 
+struct hash_map_str_key*    hash_map_str_key_init(struct hash_map_str_key* key, char* str)
+{
+    ASSERT_MESSAGE((NULL != key), "key 必须由外部保证有效性");
+    str = (NULL == str)?"":str;
+
+    size_t key_len = strlen(str) + 1;
+    key->key = (char*)malloc(key_len);
+    if (NULL == key->key)
+    {
+        key->key = NULL;
+        return NULL;
+    }
+
+    memcpy(key->key, str, key_len);
+    key->hash = DJB2Hash(str);
+    return key;
+}
+
+struct hash_map_str_key*    hash_map_str_key_ref(struct hash_map_str_key* key, char* str)
+{
+    ASSERT_MESSAGE((NULL != key), "key 必须由外部保证有效性");
+    key->key  = str;
+    key->hash = DJB2Hash(str);
+    return key;
+}
+
+
+
 hash_map_str_int_entry* hash_map_str_int_entry_new(char* key, int val)
 {
     struct hash_map_str_int_entry* entry = (struct hash_map_str_int_entry*)malloc(sizeof(struct hash_map_str_int_entry));
@@ -93,27 +121,5 @@ struct hash_trait*  hash_map_str_int_trait_init(struct hash_trait* trait)
     trait->equal = hash_map_str_int_entry_equal;
     return trait;
 }
-
-
-
-
-struct hash_map_str_key*    hash_map_str_key_init(struct hash_map_str_key* key, char* str)
-{
-    ASSERT_MESSAGE((NULL != key), "key 必须由外部保证有效性");
-    str = (NULL == str)?"":str;
-
-    size_t key_len = strlen(str) + 1;
-    key->key = (char*)malloc(key_len);
-    if (NULL == key->key)
-    {
-        key->key = NULL;
-        return NULL;
-    }
-
-    memcpy(key->key, str, key_len);
-    key->hash = DJB2Hash(str);
-    return key;
-}
-
 
 
